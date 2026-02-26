@@ -1,0 +1,352 @@
+---
+title: "Exploring GEO Data with GSEexplore"
+subtitle: "A walkthrough using GSE63310"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{gse63310_walkthrough}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE,  # Set to TRUE if GEO data download works in CI
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+## Introduction
+
+GSEexplore is an interactive Shiny application designed to simplify the exploration of Gene Expression Omnibus (GEO) datasets. This vignette walks through the complete workflow using GSE63310, a publicly available microarray dataset.
+
+The package provides:
+
+- **Data Fetching**: Retrieve GEO datasets directly by accession ID
+- **Quality Control**: Assess data quality through PCA and sample distribution analysis
+- **Differential Expression**: Perform statistical testing to identify differentially expressed genes
+- **Interactive Exploration**: Examine individual gene expression patterns across samples
+
+## Getting Started
+
+### Installation
+
+Install GSEexplore from its repository:
+
+```{r setup, eval=TRUE}
+# This would be installed via devtools::install_github() in practice
+library(GSEexplore)
+```
+
+### About GSE63310
+
+GSE63310 is a microarray study examining gene expression in a biological system with different treatment groups. It contains:
+
+- ~48,000 probes (features)
+- Multiple sample replicates
+- Defined phenotype/treatment information
+
+## Workflow: Fetching and Exploring Data
+
+### Step 1: Fetch the Dataset
+
+Use `fetch_geo_dataset()` to retrieve the ExpressionSet object from GEO:
+
+```{r fetch}
+# Fetch GSE63310
+eset <- fetch_geo_dataset("GSE63310")
+
+# Check the object
+dim(eset)  # Dimensions: features × samples
+```
+
+The function returns a Biobase `ExpressionSet` object containing:
+- **Expression matrix**: Gene expression values
+- **Phenotype data**: Sample metadata and treatment information
+- **Feature data**: Gene/probe annotations
+
+### Step 2: Explore Dataset Summary
+
+Get a quick overview of the dataset:
+
+```{r summary}
+summary_info <- get_dataset_summary(eset)
+
+cat("Number of genes/probes:", summary_info$n_features, "\n")
+cat("Number of samples:", summary_info$n_samples, "\n")
+cat("Phenotype columns:", paste(summary_info$phenotype_cols, collapse=", "), "\n")
+cat("Expression range:", summary_info$expression_range[1], "to", summary_info$expression_range[2], "\n")
+```
+
+### Step 3: Examine Sample Metadata
+
+```{r metadata}
+pdata <- Biobase::pData(eset)
+head(pdata)  # View first few rows
+
+# Check available phenotype columns
+colnames(pdata)
+```
+
+## Quality Control Analysis
+
+### Prepare Data for Analysis
+
+```{r prepare_data}
+data_list <- prepare_analysis_data(eset)
+
+# data_list contains:
+# - expr_matrix: Expression matrix (genes × samples)
+# - phenotypes: Phenotype data
+# - feature_names: Gene/probe identifiers
+# - sample_names: Sample identifiers
+```
+
+### PCA Analysis
+
+Perform Principal Component Analysis to visualize sample relationships:
+
+```{r pca}
+pca_result <- compute_pca(data_list$expr_matrix)
+
+# Access results
+head(pca_result$scores)  # PC scores for each sample
+pca_result$var_explained[1:5]  # % variance explained by first 5 PCs
+
+# The PCA object itself
+str(pca_result$pca)
+```
+
+### Sample Distribution Analysis
+
+Calculate distribution statistics for each sample:
+
+```{r distributions}
+dist_stats <- calculate_sample_distributions(data_list$expr_matrix)
+head(dist_stats)
+
+# Columns include: mean, median, sd, quartiles, range, n_genes
+```
+
+This helps identify outliers or technical artifacts:
+
+```{r dist_check}
+# Check for samples with unusual mean or sd
+summary(dist_stats$mean)
+summary(dist_stats$sd)
+```
+
+## Batch Effect Detection and Correction
+
+### Detect Batch Effects
+
+Check for unwanted variation in your data:
+
+```{r batch_detect}
+batch_info <- detect_batch_effects(
+  data_list$expr_matrix,
+  data_list$phenotypes,
+  phenotype_col = "treatment"  # The biological grouping
+)
+
+cat("Surrogate variables detected:", batch_info$n_sv, "\n")
+cat("Has batch effects:", batch_info$has_batch, "\n")
+```
+
+If batch effects are detected, you can correct them:
+
+```{r batch_correct, eval=FALSE}
+# Assuming a 'batch' column in phenotype data
+batch_variable <- data_list$phenotypes$batch
+
+corrected_matrix <- correct_batch_effects(
+  data_list$expr_matrix,
+  batch_variable
+)
+
+# Use corrected matrix for downstream analysis
+```
+
+## Differential Expression Analysis
+
+### Identify Treatment Groups
+
+First, determine the phenotype column for analysis:
+
+```{r de_groups}
+# Example: if phenotype data has a "treatment" column
+pdata <- Biobase::pData(eset)
+
+# View unique values in a potential group column
+# (This depends on your specific dataset structure)
+# unique(pdata$treatment)
+```
+
+### Run Differential Expression Analysis
+
+Use `run_differential_expression()` to compare two groups:
+
+```{r de_analysis}
+# Example: comparing two treatment groups
+# Replace "treatment", "control", "treated" with your actual column and values
+de_results <- run_differential_expression(
+  eset,
+  phenotype_col = "treatment",  # The phenotype column
+  group1 = "control",           # Reference group
+  group2 = "treated"            # Treatment group
+)
+
+head(de_results)
+
+# Results include:
+# - gene_id: Gene/probe identifier
+# - logFC: Log2 fold change
+# - AveExpr: Average expression
+# - t: t-statistic
+# - P.Value: Raw p-value
+# - adj.P.Val: Adjusted p-value (Benjamini-Hochberg)
+# - significance: * marks for significance levels
+```
+
+### Explore Results
+
+```{r de_explore}
+# How many genes significant at FDR < 0.05?
+sig_genes <- de_results$adj.P.Val < 0.05
+cat("Significant genes (FDR < 0.05):", sum(sig_genes), "\n")
+
+# Top genes by adjusted p-value
+head(de_results[order(de_results$adj.P.Val), ], 10)
+
+# Genes with largest fold changes
+top_fc <- de_results[order(abs(de_results$logFC), decreasing = TRUE), ]
+head(top_fc, 10)
+```
+
+## Using the Shiny Application
+
+For interactive exploration, launch the Shiny app:
+
+```{r run_app, eval=TRUE}
+# Run the interactive Shiny application
+# GSEexplore::run_app()
+```
+
+The Shiny app provides an intuitive interface with tabs for:
+
+1. **Data Loading**: Enter a GSE accession and fetch data
+2. **QC Views**: Interactive PCA and distribution plots
+3. **Differential Expression**: Select groups, run analysis, visualize volcano plots
+4. **Batch Correction**: Detect and correct for batch effects
+5. **Heatmap**: Visualize expression patterns with clustering
+6. **Exploration**: Browse individual gene expression across samples
+
+All plots are interactive using plotly, and results tables are searchable and sortable.
+
+## Advanced Usage
+
+## Advanced Usage
+
+### Heatmap Visualization
+
+Create expression heatmaps for exploring gene expression patterns:
+
+```{r heatmap_viz, eval=FALSE}
+# Get top variable genes
+top_var <- get_top_variable_genes(data_list$expr_matrix, top_n = 100)
+
+# Plot heatmap for top 50 genes
+plot_expression_heatmap(
+  data_list$expr_matrix,
+  data_list$phenotypes,
+  gene_indices = top_var$row_index[1:50],
+  color_by = "treatment",
+  main = "Top 50 Most Variable Genes"
+)
+```
+
+### Working with Batch-Corrected Data
+
+```{r batch_workflow, eval=FALSE}
+# 1. Detect batch effects
+batch_info <- detect_batch_effects(
+  data_list$expr_matrix,
+  data_list$phenotypes,
+  "batch_column"
+)
+
+if (batch_info$has_batch) {
+  # 2. Correct for batch
+  corrected <- correct_batch_effects(
+    data_list$expr_matrix,
+    data_list$phenotypes$batch_column
+  )
+
+  # 3. Run analysis on corrected data
+  # (would require creating a new ExpressionSet with corrected matrix)
+}
+```
+
+### Accessing Raw Components
+
+You can work directly with the underlying R functions:
+
+```{r advanced}
+# Extract expression matrix
+expr_matrix <- Biobase::exprs(eset)
+head(expr_matrix[1:5, 1:5])
+
+# Manual PCA
+pca_manual <- stats::prcomp(t(expr_matrix), scale = TRUE)
+```
+
+### Custom Analysis Pipeline
+
+Combine multiple functions for custom workflows:
+
+```{r custom_pipeline, eval=FALSE}
+# 1. Fetch and validate
+eset <- fetch_geo_dataset("GSE63310")
+GSEexplore:::validate_expressionset(eset)  # Internal validation
+
+# 2. QC assessment
+data <- prepare_analysis_data(eset)
+pca <- compute_pca(data$expr_matrix)
+dist_summary <- calculate_sample_distributions(data$expr_matrix)
+
+# 3. Batch correction if needed
+batch_info <- detect_batch_effects(data$expr_matrix, data$phenotypes, "batch")
+if (batch_info$has_batch) {
+  data$expr_matrix <- correct_batch_effects(data$expr_matrix, data$phenotypes$batch)
+}
+
+# 4. Multiple DE comparisons (loop over groups)
+# 5. Heatmap visualization
+# 6. Integrate with other Bioconductor tools
+```
+
+## Common Issues and Solutions
+
+**Issue**: Dataset download fails with network error
+- **Solution**: Check internet connection; GEOquery may retry automatically
+
+**Issue**: Too few samples or features for analysis
+- **Solution**: Ensure dataset is suitable (typically needs 2+ samples per group, 1000+ features)
+
+**Issue**: Phenotype column has unexpected values
+- **Solution**: Examine `pData(eset)` to confirm column names and values before analysis
+
+## Further Reading
+
+- [Biobase Package](https://bioconductor.org/packages/release/bioc/html/Biobase.html)
+- [GEOquery Documentation](https://bioconductor.org/packages/release/bioc/html/GEOquery.html)
+- [limma User's Guide](https://bioconductor.org/packages/release/bioc/vignettes/limma/inst/doc/usersguide.pdf)
+- [Gene Expression Omnibus](https://www.ncbi.nlm.nih.gov/geo/)
+
+## Session Information
+
+```{r sessionInfo}
+sessionInfo()
+```

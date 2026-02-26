@@ -1,0 +1,33 @@
+Package: GSEexplore
+Title: Interactive Exploration of Gene Expression Omnibus Data
+Version: 0.1.0
+Authors@R: 
+    person(given = "GSEexplore",
+           family = "Contributors",
+           role = c("aut", "cre"),
+           email = "info@gseexplore.dev")
+Description: A Shiny application for interactive exploration of GEO (Gene Expression Omnibus) datasets.
+    Fetch expression data by GSE accession, perform quality control assessments, and run differential
+    expression analysis using limma. Includes visualization of PCA, sample distributions, and DE results.
+License: MIT + file LICENSE
+Imports: 
+    config,
+    golem (>= 0.3.0),
+    shiny (>= 1.7.0),
+    Biobase,
+    GEOquery,
+    limma,
+    sva,
+    pheatmap,
+    ggplot2,
+    plotly,
+    DT
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Encoding: UTF-8
+RoxygenNote: 7.3.3
+VignetteBuilder: knitr
+URL: https://github.com/user/GSEexplore
+BugReports: https://github.com/user/GSEexplore/issues
