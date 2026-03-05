@@ -7234,7 +7234,6 @@
       "Package": "GSEexplore",
       "Version": "0.1.0",
       "Source": "GitHub",
-      "Repository": "hamogus123/GSEexplore",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "GSEexplore",
