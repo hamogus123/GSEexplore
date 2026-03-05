@@ -572,42 +572,6 @@
       "Author": "Sean Davis [aut, cre] (ORCID: <https://orcid.org/0000-0002-8991-6458>)",
       "Maintainer": "Sean Davis <seandavi@gmail.com>"
     },
-    "GSEexplore": {
-      "Package": "GSEexplore",
-      "Version": "0.1.0",
-      "Source": "unknown",
-      "Title": "Interactive Exploration of Gene Expression Omnibus Data",
-      "Authors@R": "person(given = \"GSEexplore\", family = \"Contributors\", role = c(\"aut\", \"cre\"), email = \"info@gseexplore.dev\")",
-      "Description": "A Shiny application for interactive exploration of GEO (Gene Expression Omnibus) datasets. Fetch expression data by GSE accession, perform quality control assessments, and run differential expression analysis using limma. Includes visualization of PCA, sample distributions, and DE results.",
-      "License": "MIT + file LICENSE",
-      "Imports": [
-        "config",
-        "golem (>= 0.3.0)",
-        "shiny (>= 1.7.0)",
-        "Biobase",
-        "GEOquery",
-        "limma",
-        "sva",
-        "pheatmap",
-        "ggplot2",
-        "plotly",
-        "DT"
-      ],
-      "Suggests": [
-        "knitr",
-        "rmarkdown",
-        "testthat (>= 3.0.0)"
-      ],
-      "Encoding": "UTF-8",
-      "RoxygenNote": "7.3.3",
-      "VignetteBuilder": "knitr",
-      "URL": "https://github.com/user/GSEexplore",
-      "BugReports": "https://github.com/user/GSEexplore/issues",
-      "NeedsCompilation": "no",
-      "Author": "GSEexplore Contributors [aut, cre]",
-      "Maintainer": "GSEexplore Contributors <info@gseexplore.dev>",
-      "Repository": "CRAN"
-    },
     "GenomicRanges": {
       "Package": "GenomicRanges",
       "Version": "1.62.1",
