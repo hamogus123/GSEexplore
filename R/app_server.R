@@ -3,7 +3,8 @@
 #' @param input,output,session Internal parameters for {shiny}.
 #'     DO NOT REMOVE.
 #' @import shiny
-#' @noRd
+#' @keywords internal
+#' @export
 app_server <- function(input, output, session) {
   # Reactive values to store data
   data_state <- shiny::reactiveValues(

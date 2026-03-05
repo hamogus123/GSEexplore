@@ -3,7 +3,8 @@
 #' @param request Internal parameter for `{shiny}`.
 #'     DO NOT REMOVE.
 #' @import shiny
-#' @noRd
+#' @keywords internal
+#' @export
 app_ui <- function(request) {
   tagList(
     golem_add_external_resources(),
