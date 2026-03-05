@@ -8,7 +8,6 @@ entrypoint = 'app.R'
 validate = true
 files = [
   '/app.R',
-  '/manifest.json',
   '/.posit/publish/GSEexplore-IDGA.toml',
   '/.posit/publish/deployments/deployment-6LO5.toml'
 ]
