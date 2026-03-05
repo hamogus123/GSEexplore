@@ -7229,6 +7229,22 @@
       "Author": "Gábor Csárdi [aut, cre], Kuba Podgórski [ctb], Rich Geldreich [ctb], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
       "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
       "Repository": "CRAN"
+    },
+    "GSEexplore": {
+      "Package": "GSEexplore",
+      "Version": "0.1.0",
+      "Source": "GitHub",
+      "Repository": "hamogus123/GSEexplore",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "GSEexplore",
+      "RemoteUsername": "hamogus123",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "035afc6a0975123e0f90ef49b53022df8823f995",
+      "GithubRepo": "GSEexplore",
+      "GithubUsername": "hamogus123",
+      "GithubRef": "HEAD",
+      "GithubSHA1": "035afc6a0975123e0f90ef49b53022df8823f995"
     }
   }
 }
